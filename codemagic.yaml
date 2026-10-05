@@ -4,7 +4,7 @@ workflows:
     instance_type: mac_mini_m2
     max_build_duration: 60
     integrations:
-      app_store_connect: Car Market Place
+      app_store_connect: Car Market Place (Admin)
     environment:
       xcode: 26.0
       node: 22
