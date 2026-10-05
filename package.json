@@ -1,0 +1,16 @@
+{
+  "name": "carmarketplace-ios",
+  "version": "1.1.0",
+  "private": true,
+  "scripts": {
+    "sync:ios": "cap sync ios"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.3.3",
+    "@capacitor/ios": "8.3.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.3.3",
+    "typescript": "5.9.3"
+  }
+}
