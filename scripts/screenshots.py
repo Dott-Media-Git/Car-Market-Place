@@ -13,7 +13,7 @@ for kind,match in [('iphone','Pro Max'),('ipad','iPad Pro 13')]:
     run('xcrun','simctl','status_bar',uid,'override','--time','9:41','--batteryState','charged','--batteryLevel','100')
     run('xcrun','simctl','install',uid,'build/simulator/Build/Products/Debug-iphonesimulator/App.app')
     run('xcrun','simctl','launch',uid,'com.carmmarketug.app')
-    time.sleep(40)
+    time.sleep(120)
     run('xcrun','simctl','io',uid,'screenshot',str(out/(kind+'-homepage.png')))
     run('xcrun','simctl','shutdown',uid)
     print('Captured actual app on '+d['name'])

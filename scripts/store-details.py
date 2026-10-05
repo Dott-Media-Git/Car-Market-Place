@@ -38,6 +38,7 @@ Support: info@dottmedia.org'''
 editable = [v for v in versions if v['attributes']['appStoreState'] in ['PREPARE_FOR_SUBMISSION','DEVELOPER_REJECTED','REJECTED']]
 assert len(editable)==1, 'Expected one editable store version'
 v = editable[0]
+api('PATCH','appStoreVersions/'+v['id'],{'data':{'type':'appStoreVersions','id':v['id'],'attributes':{'versionString':'1.1.0'}}})
 locales = api('GET', 'appStoreVersions/'+v['id']+'/appStoreVersionLocalizations')['data']
 for loc in locales:
     if loc['attributes']['locale'].startswith('en'):
@@ -48,5 +49,18 @@ try:
     report['reviewDetail'] = api('GET','appStoreVersions/'+v['id']+'/appStoreReviewDetail')
 except RuntimeError as error:
     report['reviewDetailError'] = str(error)
+review = report.get('reviewDetail',{}).get('data')
+attrs = {'contactFirstName':'Isaac','contactLastName':'Kutesa','contactEmail':'info@dottmedia.org','contactPhone':'+256776435561','demoAccountRequired':True,'notes':'CarMarketplace connects buyers with providers of physical vehicles and parts. Parts checkout sends an order request and does not charge the customer. Rental inquiries require provider confirmation. Reviewer sign-in credentials will be supplied before submission.'}
+if review:
+    api('PATCH','appStoreReviewDetails/'+review['id'],{'data':{'type':'appStoreReviewDetails','id':review['id'],'attributes':attrs}})
+else:
+    api('POST','appStoreReviewDetails',{'data':{'type':'appStoreReviewDetails','attributes':attrs,'relationships':{'appStoreVersion':{'data':{'type':'appStoreVersions','id':v['id']}}}}})
+infos = api('GET','apps/'+app['id']+'/appInfos')['data']
+for info in infos:
+    if info['attributes']['appStoreState'] == 'PREPARE_FOR_SUBMISSION':
+        api('PATCH','appInfos/'+info['id'],{'data':{'type':'appInfos','id':info['id'],'relationships':{'primaryCategory':{'data':{'type':'appCategories','id':'SHOPPING'}}}}})
+        for loc in api('GET','appInfos/'+info['id']+'/appInfoLocalizations')['data']:
+            if loc['attributes']['locale'].startswith('en'):
+                api('PATCH','appInfoLocalizations/'+loc['id'],{'data':{'type':'appInfoLocalizations','id':loc['id'],'attributes':{'subtitle':'Buy, sell and rent cars','privacyPolicyUrl':'https://app.dott-media.org/privacy-policy'}}})
 out.joinpath('store-status.json').write_text(json.dumps(report, indent=2))
 print('Updated English description and keywords; stored review readiness report for app '+app['id'])
