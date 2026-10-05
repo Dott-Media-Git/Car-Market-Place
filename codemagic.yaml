@@ -1,4 +1,18 @@
 workflows:
+  store-upload:
+    name: Upload inspected store screenshots
+    instance_type: mac_mini_m2
+    max_build_duration: 15
+    integrations:
+      app_store_connect: Car Market Place (Admin)
+    scripts:
+      - name: Upload inspected screenshots and listing details
+        script: |
+          python3 -m venv /tmp/store-tools
+          /tmp/store-tools/bin/pip install 'PyJWT[crypto]' requests
+          /tmp/store-tools/bin/python scripts/upload-screenshots.py
+    artifacts:
+      - store-artifacts/**
   store-preparation:
     name: Store details and simulator screenshots
     instance_type: mac_mini_m2

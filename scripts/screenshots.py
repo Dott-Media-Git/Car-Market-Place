@@ -14,6 +14,12 @@ for kind,match in [('iphone','Pro Max'),('ipad','iPad Pro 13')]:
     run('xcrun','simctl','install',uid,'build/simulator/Build/Products/Debug-iphonesimulator/App.app')
     run('xcrun','simctl','launch',uid,'com.carmmarketug.app')
     time.sleep(120)
+    if kind=='iphone':
+        run('xcrun','simctl','terminate',uid,'com.carmmarketug.app')
+        run('xcrun','simctl','launch',uid,'com.carmmarketug.app')
+        time.sleep(60)
+        logs=run('xcrun','simctl','spawn',uid,'log','show','--last','5m','--style','compact','--predicate','process == "App"')
+        out.joinpath('iphone-runtime.log').write_text(logs)
     run('xcrun','simctl','io',uid,'screenshot',str(out/(kind+'-homepage.png')))
     run('xcrun','simctl','shutdown',uid)
     print('Captured actual app on '+d['name'])
