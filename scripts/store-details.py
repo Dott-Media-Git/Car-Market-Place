@@ -1,9 +1,18 @@
-import os, time, json, pathlib
+import os, time, json, pathlib, base64
 import jwt, requests
 
 out = pathlib.Path('store-artifacts')
 out.mkdir(exist_ok=True)
-token = jwt.encode({'iss': os.environ['APP_STORE_CONNECT_ISSUER_ID'], 'iat': int(time.time()), 'exp': int(time.time())+1100, 'aud': 'appstoreconnect-v1'}, os.environ['APP_STORE_CONNECT_PRIVATE_KEY'], algorithm='ES256', headers={'kid': os.environ['APP_STORE_CONNECT_KEY_IDENTIFIER']})
+key = os.environ['APP_STORE_CONNECT_PRIVATE_KEY'].strip()
+if key.startswith('@file:'):
+    key = pathlib.Path(key[6:]).read_text()
+elif not key.startswith('-----BEGIN'):
+    if len(key)<1024 and pathlib.Path(key).is_file():
+        key = pathlib.Path(key).read_text()
+    else:
+        key = base64.b64decode(key).decode()
+key = key.replace('\\n','\n')
+token = jwt.encode({'iss': os.environ['APP_STORE_CONNECT_ISSUER_ID'], 'iat': int(time.time()), 'exp': int(time.time())+1100, 'aud': 'appstoreconnect-v1'}, key, algorithm='ES256', headers={'kid': os.environ['APP_STORE_CONNECT_KEY_IDENTIFIER']})
 s = requests.Session()
 s.headers['Authorization'] = 'Bearer '+token
 def api(method, route, payload=None):
@@ -35,6 +44,9 @@ for loc in locales:
         api('PATCH', 'appStoreVersionLocalizations/'+loc['id'], {'data': {'type':'appStoreVersionLocalizations','id':loc['id'],'attributes':{'description':description,'keywords':'cars,Uganda,vehicles,buy,sell,rent,rentals,auto,parts,marketplace'}}})
         report['localizationId'] = loc['id']
         report['screenshotSets'] = api('GET','appStoreVersionLocalizations/'+loc['id']+'/appScreenshotSets')['data']
-report['reviewDetail'] = api('GET','appStoreVersions/'+v['id']+'/appStoreReviewDetail')
+try:
+    report['reviewDetail'] = api('GET','appStoreVersions/'+v['id']+'/appStoreReviewDetail')
+except RuntimeError as error:
+    report['reviewDetailError'] = str(error)
 out.joinpath('store-status.json').write_text(json.dumps(report, indent=2))
 print('Updated English description and keywords; stored review readiness report for app '+app['id'])
