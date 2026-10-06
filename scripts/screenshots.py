@@ -8,6 +8,11 @@ for kind,match in [('iphone','Pro Max'),('ipad','iPad Pro 13')]:
     candidates=[d for d in all_devices if match in d['name']]
     if not candidates: raise RuntimeError('Missing simulator '+match)
     d=candidates[0];uid=d['udid']
+    if kind=='iphone':
+        runtimes=json.loads(run('xcrun','simctl','list','runtimes','--json'))['runtimes']
+        runtime=next(r['identifier'] for r in runtimes if r.get('isAvailable') and r['name'].startswith('iOS 26'))
+        uid=run('xcrun','simctl','create','CarMarketplace Clean iPhone','com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro-Max',runtime)
+        d={'name':'Clean iPhone 16 Pro Max','state':'Shutdown'}
     if d['state']!='Booted': run('xcrun','simctl','boot',uid)
     run('xcrun','simctl','bootstatus',uid,'-b')
     run('xcrun','simctl','status_bar',uid,'override','--time','9:41','--batteryState','charged','--batteryLevel','100')
