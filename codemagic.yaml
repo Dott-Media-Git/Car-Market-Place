@@ -51,7 +51,7 @@ workflows:
         distribution_type: app_store
         bundle_identifier: com.carmmarketug.app
       vars:
-        IOS_BUILD_NUMBER: "1"
+        IOS_BUILD_NUMBER: "2"
     scripts:
       - name: Install and sync iOS
         script: |

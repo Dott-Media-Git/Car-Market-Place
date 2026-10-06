@@ -1,6 +1,25 @@
 import UIKit
 import Capacitor
 
+// Keep the hosted app's fixed navigation inside the device safe area.
+class MarketplaceContainerViewController: UIViewController {
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        let content = CAPBridgeViewController()
+        addChild(content)
+        content.view.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(content.view)
+        NSLayoutConstraint.activate([
+            content.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            content.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            content.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            content.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor)
+        ])
+        content.didMove(toParent: self)
+    }
+}
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
