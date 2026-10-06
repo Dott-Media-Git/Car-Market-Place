@@ -42,7 +42,7 @@ api('PATCH','appStoreVersions/'+v['id'],{'data':{'type':'appStoreVersions','id':
 locales = api('GET', 'appStoreVersions/'+v['id']+'/appStoreVersionLocalizations')['data']
 for loc in locales:
     if loc['attributes']['locale'].startswith('en'):
-        api('PATCH', 'appStoreVersionLocalizations/'+loc['id'], {'data': {'type':'appStoreVersionLocalizations','id':loc['id'],'attributes':{'description':description,'keywords':'cars,Uganda,vehicles,buy,sell,rent,rentals,auto,parts,marketplace'}}})
+        api('PATCH', 'appStoreVersionLocalizations/'+loc['id'], {'data': {'type':'appStoreVersionLocalizations','id':loc['id'],'attributes':{'description':description,'keywords':'cars,Uganda,vehicles,buy,sell,rent,rentals,auto,parts,marketplace','supportUrl':'https://app.dott-media.org/support'}}})
         report['localizationId'] = loc['id']
         report['screenshotSets'] = api('GET','appStoreVersionLocalizations/'+loc['id']+'/appScreenshotSets')['data']
 try:

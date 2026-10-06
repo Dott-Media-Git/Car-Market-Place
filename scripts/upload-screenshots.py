@@ -22,4 +22,7 @@ for file,display in [('ipad-homepage.png','APP_IPAD_PRO_3GEN_129'),('iphone-home
         if state['state']=='FAILED': raise RuntimeError(str(state))
         time.sleep(5)
     assert state['state']=='COMPLETE', 'Screenshot still processing'
+    for old in existing:
+        if old['attributes']['fileName']==file:
+            api('DELETE','appScreenshots/'+old['id'])
     print(file+' uploaded and accepted')
