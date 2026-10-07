@@ -9,6 +9,8 @@ report['selectedBuild']={'id':ready[0]['id'],'version':'2','state':'VALID'}
 report['version']=api('GET','appStoreVersions/'+version['id'])['data']
 report['localizations']=api('GET','appStoreVersions/'+version['id']+'/appStoreVersionLocalizations')['data']
 report['review']=api('GET','appStoreVersions/'+version['id']+'/appStoreReviewDetail')['data']
+for field in ['demoAccountName','demoAccountPassword']:
+    report['review']['attributes'][field] = bool(report['review']['attributes'].get(field))
 report['screenshots']=[]
 for loc in report['localizations']:
     for group in api('GET','appStoreVersionLocalizations/'+loc['id']+'/appScreenshotSets')['data']:

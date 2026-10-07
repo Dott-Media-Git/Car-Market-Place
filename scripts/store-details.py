@@ -18,7 +18,10 @@ s.headers['Authorization'] = 'Bearer '+token
 def api(method, route, payload=None):
     r = s.request(method, 'https://api.appstoreconnect.apple.com/v1/'+route, json=payload, timeout=90)
     if not r.ok:
-        raise RuntimeError(str(r.status_code)+' '+r.text[:2000])
+        detail = r.text[:2000]
+        for name in ['APP_REVIEW_EMAIL','APP_REVIEW_PASSWORD']:
+            if os.environ.get(name): detail = detail.replace(os.environ[name], '[REDACTED]')
+        raise RuntimeError(str(r.status_code)+' '+detail)
     return r.json() if r.content else {}
 apps = api('GET', 'apps?filter[bundleId]=com.carmmarketug.app')['data']
 assert len(apps)==1, 'Expected one CarMarketplace app'
@@ -38,7 +41,7 @@ Support: info@dottmedia.org'''
 editable = [v for v in versions if v['attributes']['appStoreState'] in ['PREPARE_FOR_SUBMISSION','DEVELOPER_REJECTED','REJECTED']]
 assert len(editable)==1, 'Expected one editable store version'
 v = editable[0]
-api('PATCH','appStoreVersions/'+v['id'],{'data':{'type':'appStoreVersions','id':v['id'],'attributes':{'versionString':'1.1.0'}}})
+api('PATCH','appStoreVersions/'+v['id'],{'data':{'type':'appStoreVersions','id':v['id'],'attributes':{'versionString':'1.1.0','copyright':'2026 Dott Media'}}})
 locales = api('GET', 'appStoreVersions/'+v['id']+'/appStoreVersionLocalizations')['data']
 for loc in locales:
     if loc['attributes']['locale'].startswith('en'):
@@ -51,6 +54,8 @@ except RuntimeError as error:
     report['reviewDetailError'] = str(error)
 review = report.get('reviewDetail',{}).get('data')
 attrs = {'contactFirstName':'Isaac','contactLastName':'Kutesa','contactEmail':'info@dottmedia.org','contactPhone':'+256776435561','demoAccountRequired':True,'notes':'CarMarketplace connects buyers with providers of physical vehicles and parts. Parts checkout sends an order request and does not charge the customer. Rental inquiries require provider confirmation. Reviewer sign-in credentials will be supplied before submission.'}
+if os.environ.get('APP_REVIEW_EMAIL') and os.environ.get('APP_REVIEW_PASSWORD'):
+    attrs.update({'demoAccountName':os.environ['APP_REVIEW_EMAIL'],'demoAccountPassword':os.environ['APP_REVIEW_PASSWORD'],'notes':'CarMarketplace connects buyers with providers of physical vehicles and parts. Parts checkout sends an order request and does not charge the customer. Rental inquiries require provider confirmation. Use the provided dedicated account to sign in with email and password and open Dashboard to inspect listings and messages.'})
 if review:
     api('PATCH','appStoreReviewDetails/'+review['id'],{'data':{'type':'appStoreReviewDetails','id':review['id'],'attributes':attrs}})
 else:
@@ -62,5 +67,8 @@ for info in infos:
         for loc in api('GET','appInfos/'+info['id']+'/appInfoLocalizations')['data']:
             if loc['attributes']['locale'].startswith('en'):
                 api('PATCH','appInfoLocalizations/'+loc['id'],{'data':{'type':'appInfoLocalizations','id':loc['id'],'attributes':{'subtitle':'Buy, sell and rent cars','privacyPolicyUrl':'https://app.dott-media.org/privacy-policy'}}})
+if review:
+    for field in ['demoAccountName','demoAccountPassword']:
+        review['attributes'][field] = bool(review['attributes'].get(field))
 out.joinpath('store-status.json').write_text(json.dumps(report, indent=2))
 print('Updated English description and keywords; stored review readiness report for app '+app['id'])
