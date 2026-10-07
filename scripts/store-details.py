@@ -67,6 +67,7 @@ for info in infos:
         for loc in api('GET','appInfos/'+info['id']+'/appInfoLocalizations')['data']:
             if loc['attributes']['locale'].startswith('en'):
                 api('PATCH','appInfoLocalizations/'+loc['id'],{'data':{'type':'appInfoLocalizations','id':loc['id'],'attributes':{'subtitle':'Buy, sell and rent cars','privacyPolicyUrl':'https://app.dott-media.org/privacy-policy','privacyChoicesUrl':'https://app.dott-media.org/delete-data'}}})
+                report['appInfoLocalization'] = api('GET','appInfoLocalizations/'+loc['id'])['data']
 if review:
     for field in ['demoAccountName','demoAccountPassword']:
         review['attributes'][field] = bool(review['attributes'].get(field))
